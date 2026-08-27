@@ -1,21 +1,15 @@
-postman_collection_formatter.py
-formatted_data.json
-n8nHTTPTemp.json
-split-by-index.js
-*openapi.json
-*cxcpqswagger.json
-CPQ_swagger_to_postman.py
-SCM_swagger_to_postman.py
-PPM_swagger_to_postman.py
-FIN_swagger_to_postman.py
-CX_SALES_swagger_to_postman.py
-OFS_swagger_to_postman.py
-B2B_SERVICE_swagger_to_postman.py
-COMMON_swagger_to_postman.py
-KNOWLEDGE_swagger_to_postman.py
-SERVICE_KM_swagger_to_postman.py
-PROC_swagger_to_postman.py
-HCM_swagger_to_postman.py
-TALEO_swagger_to_postman.py
+# Local conversion pipeline (Node project, specs, node_modules) — not published
+pipeline/
+# Machine-readable twin of REPORT.md, rewritten by every build
+report.json
+
+# Claude Code
+CLAUDE.md
+.claude/
+
+# Downloaded Oracle specs, if fetched at the repo root
 *swagger.json
-.claude
+*openapi.json
+
+# OS / editor
+.DS_Store
