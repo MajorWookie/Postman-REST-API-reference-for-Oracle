@@ -80,6 +80,116 @@ The files are produced by a Node pipeline (kept outside this repository) that fe
 
 Collections for other Oracle pillars (HCM, Financials, Procurement, CX Sales, PPM, …) from the previous hand-split generation of this repository are available in the git history.
 
+## Oracle CPQ REST API — `q` Parameter Cheat Sheet
+
+MongoDB-style query syntax for filtering REST calls
+
+### Base URL Form
+```
+GET /rest/v17/{processVarName}/{docType}?q={...}&fields=field1,field2
+```
+
+### Core Rules
+- Values in single quotes: `'value'`
+- Field names unquoted
+- No relative-date functions — compute ISO timestamps client-side, inject them
+- URL-encode `{ } ' "` if your client doesn't do it automatically
+- Field suffixes (`_l`, `_c`, etc.) must match actual variable names in the doc type — confirm before using
+
+### Operators
+| Operator | Meaning |
+|---|---|
+| `$eq` | equals |
+| `$ne` | not equals |
+| `$gt` | greater than |
+| `$gte` | greater than or equal |
+| `$lt` | less than |
+| `$lte` | less than or equal |
+| `$regex` | pattern match |
+| `$in` | value in array |
+
+### Examples: Simplest → Most Complex
+
+**Implicit equality**
+```
+{partNumber:'1725-20049'}
+```
+
+**`$eq` (explicit)**
+```
+{partNumber:{$eq:'1725-20049'}}
+```
+
+**`$ne`**
+```
+{partNumber:{$ne:'1725-20049'}}
+```
+
+**`$gt`**
+```
+{eventDate:{$gt:'2026-09-01T00:00:00Z'}}
+```
+
+**`$gte`**
+```
+{lastUpdatedDate_l:{$gte:'2026-08-26T18:16:00Z'}}
+```
+
+**`$lt`**
+```
+{eventDate:{$lt:'2026-09-01T00:00:00Z'}}
+```
+
+**`$lte`**
+```
+{lastUpdatedDate_l:{$lte:'2026-08-27T18:16:00Z'}}
+```
+
+**`$regex`** (`^...$` anchors = exact match)
+```
+{partNumber:{$regex:'^1725-20049$'}}
+```
+
+**`$in`**
+```
+{partNumber:{$in:['1725-20049','1263-10000']}}
+```
+
+#### Combinations
+
+**Range — `$gte` + `$lte` on same field (implicit AND)**
+```
+{lastUpdatedDate_l:{$gte:'2026-08-26T18:16:00Z',$lte:'2026-08-27T18:16:00Z'}}
+```
+
+**`$and` — different fields**
+```
+{$and:[{event:'BML'},{eventDate:{$gte:'2026-09-01T00:00:00Z'}}]}
+```
+
+**`$and` — `$ne` + `$regex`**
+```
+{$and:[{partNumber:{$ne:'1263-10000'}},{partNumber:{$regex:'^1725'}}]}
+```
+
+**`$or` — equality on same field**
+```
+{$or:[{partNumber:'1725-20049'},{partNumber:'1263-10000'}]}
+```
+
+**`$or` — excluding a range (`$lt` + `$gt`)**
+```
+{$or:[{eventDate:{$lt:'2026-01-01T00:00:00Z'}},{eventDate:{$gt:'2026-12-31T00:00:00Z'}}]}
+```
+
+**Nested — `(A AND B) OR C`**
+```
+{$or:[
+  {$and:[{event:'BML'},{lastUpdatedDate_l:{$gte:'2026-08-26T18:16:00Z'}}]},
+  {partNumber:'1263-10000'}
+]}
+```
+
 ## License
 
 Collection files are derived from Oracle's public API documentation. Oracle and the product names above are trademarks of Oracle Corporation; this project is not affiliated with or endorsed by Oracle.
