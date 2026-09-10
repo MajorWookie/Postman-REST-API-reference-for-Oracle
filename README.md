@@ -82,7 +82,7 @@ Collections for other Oracle pillars (HCM, Financials, Procurement, CX Sales, PP
 
 ## Oracle CPQ REST API — `q` Parameter Cheat Sheet
 
-MongoDB-style query syntax for filtering REST calls
+MongoDB-style query syntax for filtering REST calls (source: Oracle CPQ REST API docs)
 
 ### Base URL Form
 ```
@@ -95,8 +95,9 @@ GET /rest/v17/{processVarName}/{docType}?q={...}&fields=field1,field2
 - No relative-date functions — compute ISO timestamps client-side, inject them
 - URL-encode `{ } ' "` if your client doesn't do it automatically
 - Field suffixes (`_l`, `_c`, etc.) must match actual variable names in the doc type — confirm before using
+- Only `$and` / `$or` are supported as conjunctions — no `$nor`, `$not`
 
-### Operators
+### Operators (Oracle-confirmed list)
 | Operator | Meaning |
 |---|---|
 | `$eq` | equals |
@@ -105,8 +106,9 @@ GET /rest/v17/{processVarName}/{docType}?q={...}&fields=field1,field2
 | `$gte` | greater than or equal |
 | `$lt` | less than |
 | `$lte` | less than or equal |
+| `$exists` | `true` = IS NOT NULL, `false` = IS NULL |
 | `$regex` | pattern match |
-| `$in` | value in array |
+| `$like` | CPQ-only SQL-style LIKE (`%` wildcard), alternative to `$regex` |
 
 ### Examples: Simplest → Most Complex
 
@@ -145,14 +147,25 @@ GET /rest/v17/{processVarName}/{docType}?q={...}&fields=field1,field2
 {lastUpdatedDate_l:{$lte:'2026-08-27T18:16:00Z'}}
 ```
 
+**`$exists` — not null**
+```
+{shipToPartyName:{$exists:true}}
+```
+
+**`$exists` — is null**
+```
+{shipToPartyName:{$exists:false}}
+```
+
 **`$regex`** (`^...$` anchors = exact match)
 ```
 {partNumber:{$regex:'^1725-20049$'}}
 ```
 
-**`$in`**
+**`$like`** (CPQ extension, `%` wildcard, case-insensitive option)
 ```
-{partNumber:{$in:['1725-20049','1263-10000']}}
+{partNumber:{$like:'%20049%'}}
+{partNumber:{$like:'1725%',$options:'I'}}
 ```
 
 #### Combinations
@@ -170,6 +183,11 @@ GET /rest/v17/{processVarName}/{docType}?q={...}&fields=field1,field2
 **`$and` — `$ne` + `$regex`**
 ```
 {$and:[{partNumber:{$ne:'1263-10000'}},{partNumber:{$regex:'^1725'}}]}
+```
+
+**`$and` — not-null field + status**
+```
+{$and:[{event:'BML'},{shipToPartyName:{$exists:true}}]}
 ```
 
 **`$or` — equality on same field**
