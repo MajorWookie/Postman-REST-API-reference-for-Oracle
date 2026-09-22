@@ -1997,6 +1997,148 @@
           ]
         },
         {
+          "name": "File Operations",
+          "description": "Bulk asset export/import via CSV, run as a four-step chain. These endpoints are **not** in Oracle's published CPQ swagger (docs.oracle.com/.../cxcpq/swagger.json) — they were added by hand from a working CPQ instance, so the pipeline will not regenerate them.\n\nRun the requests in order. The test scripts hand the file name to the next step via the environment:\n\n1. **Export Assets CSV File** — kicks off the export; its test script stores the returned file name in `{{exportedFileName}}`.\n2. **Get Exported File** — downloads that file (Send and Download to save the CSV).\n3. **Upload File** — uploads a local CSV as the request body; its test script stores the server-side name in `{{uploadFileName}}`. **Select your own file in the Body tab before sending** — no path is shipped with this collection.\n4. **Import Assets CSV File** — imports `{{uploadFileName}}`.\n\nSteps 1 and 2 use `{{RestVersion}}` from the CPQ environment. Steps 3 and 4 deliberately pin literal versions — `/rest/v19` for the upload and `/rest/v18` for the import — matching the working instance these requests came from. Do not tokenize them.",
+          "item": [
+            {
+              "name": "1. Export Assets CSV File",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();",
+                      "const fileName = response.exportedFileName.split('/').pop();",
+                      "pm.environment.set(\"exportedFileName\", fileName);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}{{RestVersion}}/assets/actions/export",
+                  "host": [
+                    "{{baseUrl}}{{RestVersion}}"
+                  ],
+                  "path": [
+                    "assets",
+                    "actions",
+                    "export"
+                  ]
+                },
+                "description": "Starts a CSV export of all assets. The test script writes the returned file name to the `exportedFileName` environment variable for step 2."
+              },
+              "response": []
+            },
+            {
+              "name": "2. Get Exported File",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}{{RestVersion}}/files/{{exportedFileName}}",
+                  "host": [
+                    "{{baseUrl}}{{RestVersion}}"
+                  ],
+                  "path": [
+                    "files",
+                    "{{exportedFileName}}"
+                  ]
+                },
+                "description": "Downloads the CSV produced by step 1, using the `exportedFileName` environment variable. Use **Send and Download** to save it locally."
+              },
+              "response": []
+            },
+            {
+              "name": "3. Upload File",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const fileName = pm.response.text().trim().split('/').pop();",
+                      "pm.environment.set(\"uploadFileName\", fileName);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "file",
+                  "file": {
+                    "src": null
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/rest/v19/files",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v19",
+                    "files"
+                  ]
+                },
+                "description": "Uploads a local CSV as the raw request body. Pick the file in the Body tab first — this collection ships with no local path. The test script writes the server-side name to the `uploadFileName` environment variable for step 4."
+              },
+              "response": []
+            },
+            {
+              "name": "4. Import Assets CSV File",
+              "protocolProfileBehavior": {
+                "disabledSystemHeaders": {
+                  "content-type": true
+                }
+              },
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fileName\": \"{{uploadFileName}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/rest/v18/assets/actions/import",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "rest",
+                    "v18",
+                    "assets",
+                    "actions",
+                    "import"
+                  ]
+                },
+                "description": "Imports the file uploaded in step 3, referenced by the `uploadFileName` environment variable."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
           "name": "Get Action Logs",
           "request": {
             "method": "GET",
