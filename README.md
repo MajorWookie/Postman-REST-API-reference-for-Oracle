@@ -16,19 +16,43 @@ Ready-to-import **Postman Collection v2.1** files for Oracle Cloud REST APIs, ge
 | SCM – Unclassified | `SCM_Unclassified.postman_collection.json` | Fusion SCM 26C | 498 |
 | Fusion Common | `Fusion_Common.postman_collection.json` | Fusion Applications Common 26C | 447 |
 | Fusion List of Values | `Fusion_List_of_Values.postman_collection.json` | Fusion Applications Common 26C | 38 |
+| FIN – Receivables | `FIN_Receivables.postman_collection.json` | Fusion Financials 26C | 269 |
+| FIN – Payables | `FIN_Payables.postman_collection.json` | Fusion Financials 26C | 230 |
+| FIN – Expenses | `FIN_Expenses.postman_collection.json` | Fusion Financials 26C | 272 |
+| FIN – General Ledger | `FIN_General_Ledger.postman_collection.json` | Fusion Financials 26C | 194 |
+| FIN – Cash Management | `FIN_Cash_Management.postman_collection.json` | Fusion Financials 26C | 122 |
+| FIN – Joint Venture Management | `FIN_Joint_Venture_Management.postman_collection.json` | Fusion Financials 26C | 555 |
+| FIN – Federal Financials | `FIN_Federal_Financials.postman_collection.json` | Fusion Financials 26C | 263 |
+| FIN – List of Values | `FIN_List_of_Values.postman_collection.json` | Fusion Financials 26C | 218 |
+| FIN – Unclassified | `FIN_Unclassified.postman_collection.json` | Fusion Financials 26C | 154 |
+| CX – Customer Data Management | `CX_Customer_Data_Management.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 1,076 |
+| CX – Sales | `CX_Sales.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 1,965 |
+| CX – Partner Relationship Management | `CX_Partner_Relationship_Management.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 970 |
+| CX – Service | `CX_Service.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 1,777 |
+| CX – Subscription Management | `CX_Subscription_Management.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 1,748 |
+| CX – Incentive Compensation | `CX_Incentive_Compensation.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 427 |
+| CX – Contracts | `CX_Contracts.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 588 |
+| CX – List of Values | `CX_List_of_Values.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 535 |
+| CX – Unclassified | `CX_Unclassified.postman_collection.json` | Fusion Sales and Service 2026.09.30 | 504 |
+
+Collection files are in `Collections/`, environment files in `Environments/`.
+
+Looking for customers? Customer master data — accounts, contacts, households, hub organizations and hub persons — is in **CX – Customer Data Management**; customer balances and activity (invoices, credit memos, receipts, adjustments per customer account or site) are in **FIN – Receivables**.
 
 Environments:
 
 | Environment | File | Used by |
 |---|---|---|
 | CPQ | `CPQ.postman_environment.json` | Oracle CPQ |
-| Fusion | `Fusion.postman_environment.json` | All SCM and Fusion collections |
+| Fusion | `Fusion.postman_environment.json` | All SCM, Fusion, FIN and CX collections |
 
 Source specifications (Oracle Help Center):
 
 - CPQ — <https://docs.oracle.com/en/cloud/saas/configure-price-quote/cxcpq/swagger.json>
 - Fusion Cloud SCM — <https://docs.oracle.com/en/cloud/saas/supply-chain-and-manufacturing/26c/fasrp/openapi.json>
 - Fusion Applications Common — <https://docs.oracle.com/en/cloud/saas/applications-common/26c/farca/openapi.json>
+- Fusion Cloud Financials — <https://docs.oracle.com/en/cloud/saas/financials/26c/farfa/openapi.json>
+- Fusion Cloud Sales and Fusion Service — <https://docs.oracle.com/en/cloud/saas/sales/faaps/openapi.json>
 
 `REPORT.md` is the full conversion report: request counts, partitioning rules, tokenization tables, sample URLs, schema-validation results and every judgment call made during conversion.
 
@@ -42,9 +66,9 @@ Source specifications (Oracle Help Center):
 
 Authentication is **Basic** and set once at the collection level; every request inherits it from the environment's username/password variables.
 
-> The SCM collections are large (up to ~75 MB). Import them one at a time, or only the pillars you work with.
+> The SCM and CX collections are large (up to ~75 MB). Import them one at a time, or only the areas you work with.
 >
-> `SCM_Inventory_Management.postman_collection.json` is stored with **Git LFS**. Downloading it from the GitHub web UI works as usual; if you clone the repo, install [git-lfs](https://git-lfs.com) first (`git lfs install`) or you will get a small pointer file instead of the collection.
+> `SCM_Inventory_Management.postman_collection.json` and `CX_Service.postman_collection.json` are stored with **Git LFS**. Downloading it from the GitHub web UI works as usual; if you clone the repo, install [git-lfs](https://git-lfs.com) first (`git lfs install`) or you will get a small pointer file instead of the collection.
 
 ## URL conventions
 
@@ -52,6 +76,7 @@ Fusion collections:
 
 ```
 {{baseUrl}}/fscmRestApi/resources/{{restVersion}}/inventoryTransactions/:id
+{{baseUrl}}/crmRestApi/resources/{{restVersion}}/hubOrganizations/:PartyNumber
 {{baseUrl}}/api/boss/data/objects/ora/commonAppsInfra/objects/v1/commonLookupCodes/$views/lookupLOV
 ```
 
@@ -76,9 +101,9 @@ Oracle CPQ:
 
 ## How the collections are built
 
-The files are produced by a Node pipeline (kept outside this repository) that fetches the specs, upconverts Swagger 2.0 with `swagger2openapi`, converts with `openapi-to-postmanv2`, partitions operations into the pillar collections by their leading tag segment, tokenizes URLs, rebuilds the folder tree from tags, and validates each collection against the Postman Collection v2.1.0 JSON schema. The pipeline fails if any source operation is missing from the output. Details and numbers are in `REPORT.md`.
+The files are produced by a Node pipeline (kept outside this repository) that fetches the specs, upconverts Swagger 2.0 with `swagger2openapi`, converts with `openapi-to-postmanv2`, partitions operations into the pillar collections by their leading tag segment (Financials and Sales and Service, whose tags name resources rather than areas, by a curated product-area map), tokenizes URLs, rebuilds the folder tree from tags, and validates each collection against the Postman Collection v2.1.0 JSON schema. The pipeline fails if any source operation is missing from the output. Details and numbers are in `REPORT.md`.
 
-Collections for other Oracle pillars (HCM, Financials, Procurement, CX Sales, PPM, …) from the previous hand-split generation of this repository are available in the git history.
+Collections for other Oracle pillars (HCM, Procurement, PPM, …) from the previous hand-split generation of this repository are available in the git history.
 
 ## Oracle CPQ REST API — `q` Parameter Cheat Sheet
 
